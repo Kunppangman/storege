@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>OpenAI API 키 테스트 도구</title>
+  <style>
+    body { font-family: Arial; background-color: #f8f8f8; padding: 20px; }
+    input, button { padding: 10px; margin: 5px; width: 90%; }
+    pre { background: #eee; padding: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>🔑 OpenAI API 키 유효성 테스트</h2>
+  <input type="password" id="apiKey" placeholder="여기에 sk-로 시작하는 API 키를 붙여넣으세요" />
+  <button onclick="testApiKey()">테스트 실행</button>
+  <h3>응답 결과:</h3>
+  <pre id="resultBox">아직 테스트하지 않았습니다.</pre>
+
+  <script>
+    async function testApiKey() {
+      const key = document.getElementById("apiKey").value.trim();
+      const resultBox = document.getElementById("resultBox");
+
+      if (!key.startsWith("sk-")) {
+        resultBox.innerText = "❌ 잘못된 API 키 형식입니다.";
+        return;
+      }
+
+      resultBox.innerText = "⏳ OpenAI에 요청 중...";
+
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${key}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: "안녕" }],
+            temperature: 0.7
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          resultBox.innerText = "✅ 성공!
+
+" + JSON.stringify(data, null, 2);
+        } else {
+          resultBox.innerText = `❌ 실패!
+
+상태 코드: ${response.status}
+메시지: ${JSON.stringify(data, null, 2)}`;
+        }
+      } catch (e) {
+        resultBox.innerText = "⚠️ 네트워크 오류 또는 CORS 차단: " + e.message;
+      }
+    }
+  </script>
+</body>
+</html>
